@@ -6,10 +6,29 @@ const { google } = require('googleapis')
 const { OAuth2 } = google.auth
 
 // Initialize store
+// Google Drive setup
+const SCOPES = ['https://www.googleapis.com/auth/drive.file']
+let oAuth2Client = null
+let driveFolderId = store.get('driveFolderId') || null
+const BACKUP_INTERVAL = 60 // minutes
 const store = new Store()
 
 let mainWindow
 
+// Initialize Google Drive client
+async function initDriveClient() {
+  oAuth2Client = new OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    'urn:ietf:wg:oauth:2.0:oob'
+    initDriveClient()
+  )
+  
+  const tokens = store.get('googleTokens')
+  if (tokens) {
+    oAuth2Client.setCredentials(tokens)
+  }
+}
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -91,6 +110,72 @@ ipcMain.handle('save-customer', async (event, customer) => {
   
   const filePath = path.join(customerDir, `${customer.id}.json`)
   try {
+    // Google Drive IPC Handlers
+ipcMain.handle('google-drive-authorize', async () => {
+  const authUrl = oAuth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: SCOPES
+  })
+  
+  mainWindow.webContents.send('google-auth-url', authUrl)
+})
+
+ipcMain.handle('set-drive-folder', (_, folderId) => {
+  store.set('driveFolderId', folderId)
+  driveFolderId = folderId
+  return true
+})
+
+ipcMain.handle('get-drive-customers', async () => {
+  if (!oAuth2Client || !driveFolderId) return []
+  
+  const drive = google.drive({ version: 'v3', auth: oAuth2Client })
+  const res = await drive.files.list({
+    q: `'${driveFolderId}' in parents and mimeType='application/json'`,
+    fields: 'files(id,name)'
+  })
+  
+  const customers = []
+  for (const file of res.data.files) {
+    const fileRes = await drive.files.get({
+      fileId: file.id,
+      alt: 'media'
+    })
+    customers.push(fileRes.data)
+  }
+  
+  return customers
+})
+
+ipcMain.handle('save-drive-customer', async (_, customer) => {
+  if (!oAuth2Client || !driveFolderId) return false
+  
+  const drive = google.drive({ version: 'v3', auth: oAuth2Client })
+  try {
+    await drive.files.create({
+      requestBody: {
+        name: `${customer.id}.json`,
+        parents: [driveFolderId],
+        mimeType: 'application/json'
+      },
+      media: {
+        mimeType: 'application/json',
+        body: JSON.stringify(customer)
+      }
+    })
+    return true
+  } catch (err) {
+    console.error('Drive save error:', err)
+    return false
+  }
+})
+
+// Backup handlers
+ipcMain.handle('get-backup-interval', () => store.get('backupInterval', BACKUP_INTERVAL))
+ipcMain.handle('set-backup-interval', (_, minutes) => {
+  store.set('backupInterval', minutes)
+  return true
+})
     await fs.writeJson(filePath, customer)
     return true
   } catch (err) {
