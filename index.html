@@ -29,7 +29,7 @@
       line-height: 1.6;
     }
     
-    .container {
+    .container {  
       max-width: 1200px;
       margin: 0 auto;
       padding: 20px;
@@ -118,6 +118,11 @@
       padding: 12px 20px;
       border-radius: 8px;
       cursor: pointer;
+      <div id="drive-connect" style="display: none; margin-top: 15px;">
+  <button id="connect-drive-btn" style="background: #4285F4; color: white;">
+    <i class="fab fa-google"></i> Connect Google Drive
+  </button>
+</div>
       font-weight: 600;
       transition: background 0.3s;
     }
@@ -309,6 +314,16 @@
       padding: 12px 20px;
       cursor: pointer;
       font-weight: 600;
+      <div id="backup-settings" style="margin-top: 20px; display: none;">
+  <h3><i class="fas fa-cloud-upload-alt"></i> Backup Settings</h3>
+  <div style="display: flex; gap: 10px; margin-top: 10px;">
+    <input type="number" id="backup-interval" min="5" style="flex: 1;">
+    <button id="save-interval">Save Interval</button>
+  </div>
+  <button id="backup-now" style="margin-top: 10px;">
+    <i class="fas fa-sync"></i> Backup Now
+  </button>
+</div>
       color: #777;
       border-bottom: 3px solid transparent;
       transition: all 0.3s;
