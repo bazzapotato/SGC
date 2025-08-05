@@ -905,6 +905,37 @@
       const newCustomerCompany = document.getElementById('new-customer-company')
       const toast = document.getElementById('toast')
       const customerSearch = document.getElementById('customer-search')
+      // Drive connection
+const driveConnect = document.getElementById('drive-connect')
+const connectDriveBtn = document.getElementById('connect-drive-btn')
+const backupSettings = document.getElementById('backup-settings')
+const backupInterval = document.getElementById('backup-interval')
+const saveInterval = document.getElementById('save-interval')
+const backupNow = document.getElementById('backup-now')
+
+// Check Drive connection on load
+if (await window.electronAPI.getDriveFolderId()) {
+  backupSettings.style.display = 'block'
+  backupInterval.value = await window.electronAPI.getBackupInterval()
+}
+
+connectDriveBtn.addEventListener('click', async () => {
+  await window.electronAPI.authorizeGoogleDrive()
+})
+
+saveInterval.addEventListener('click', async () => {
+  const minutes = parseInt(backupInterval.value)
+  if (minutes >= 5) {
+    await window.electronAPI.setBackupInterval(minutes)
+    showToast('Backup interval updated!')
+  }
+})
+
+backupNow.addEventListener('click', async () => {
+  showToast('Starting backup...')
+  await window.electronAPI.triggerBackup()
+  showToast('Backup completed!')
+})
       
       // State
       let currentCustomer = null
