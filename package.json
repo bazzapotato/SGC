@@ -1,0 +1,18 @@
+{
+  "name": "sgc-crm",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "node -e \"process.platform === 'win32' ? require('child_process').exec('start.bat') : require('child_process').exec('electron .')\"",
+    "fix": "node fix-dependencies.js",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "electron": "25.9.8",
+    "electron-store": "8.2.0",
+    "fs-extra": "11.3.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
+  }
+}
