@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
 const fs = require('fs-extra')
 const Store = require('electron-store')
+const { google } = require('googleapis')
+const { OAuth2 } = google.auth
 
 // Initialize store
 const store = new Store()
